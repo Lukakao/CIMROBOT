@@ -2,8 +2,9 @@ using UnityEngine;
 
 public class FaceCamera : MonoBehaviour
 {
+    public Camera camerac;
     void LateUpdate()
     {
-        transform.LookAt(transform.position + Camera.main.transform.forward);
+        transform.LookAt(transform.position + camerac.transform.forward);
     }
 }

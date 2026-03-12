@@ -7,7 +7,6 @@ public class CinematicaInversa : MonoBehaviour
     [SerializeField] Transform target,lowerJoint,upperJoint,baseJoint;
     float _x,_y,_z;
     float _a,_b,_c;
-    public float moveSpeed = 10f;
     float prevUpperAng;
     bool inverseKinematic = false;
 
@@ -52,7 +51,7 @@ public class CinematicaInversa : MonoBehaviour
     {
         if(!MandoSingleton.Instance.mandoController.robotCanMove) return;
         if(!MandoSingleton.Instance.mandoController.inverseKinematic) return;
-        targetrb.linearVelocity = new Vector3(_x,_y,_z) * Time.deltaTime * moveSpeed;
+        targetrb.linearVelocity = new Vector3(_x,_y,_z) * Time.deltaTime * MandoSingleton.Instance.mandoController.speed*10;
         
         Vector3 dir = target.position - baseJoint.position;
         float rawAngle = Mathf.Atan2(-dir.z, dir.x) * Mathf.Rad2Deg;

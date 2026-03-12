@@ -60,7 +60,7 @@ public class PartController : MonoBehaviour
         float finalAngle = currentAngle - startingAngle;
         transform.localRotation = initialRotation * Quaternion.AngleAxis(finalAngle, ejeRotacion.normalized);
         if(MandoSingleton.Instance.mandoController.inverseKinematic) return;
-        MandoSingleton.Instance.mandoController.ShowTextContext($"SERVO [{servoNum}]:  {currentAngle.ToString("F0")}°", 1f);
+        MandoSingleton.Instance.mandoController.ShowTextContext($"SERVO [{servoNum}]:      {currentAngle.ToString("F0")}°", 1f);
     }
 public Vector3 baseDir;
 #if UNITY_EDITOR

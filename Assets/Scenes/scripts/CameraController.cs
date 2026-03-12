@@ -127,7 +127,14 @@ public class CameraController : MonoBehaviour
             SwitchToPerspective();
 
             yaw   += mx * sensitivity;
-            pitch -= my * sensitivity;
+            if(transform.position.y<=1)
+            {
+                if(my<0)pitch -= my * sensitivity;
+            }
+            else
+            {
+                pitch -= my * sensitivity;
+            }
             pitch = Mathf.Clamp(pitch, minPitch, maxPitch);
         }
     }

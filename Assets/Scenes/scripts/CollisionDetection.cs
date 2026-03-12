@@ -21,12 +21,12 @@ public class CollisionDetection : MonoBehaviour
         float angle = Vector3.Angle(currentDir, currentDirupper);
         if(angle < 30 || angle > 130)
         {
-            MandoSingleton.Instance.mandoController.ShowTextContext("limite",1f); //pinch
+            MandoSingleton.Instance.mandoController.ShowTextContext("limite interno",1f); //pinch
             servos[1].currentAngle = prevLower;
             servos[2].currentAngle = prevUpper;
             cinematicaInversa.StopMoving();
             Vector3 dif = iktarget.position - prevIKtarget;
-            iktarget.position = prevIKtarget - dif;
+            iktarget.position = prevIKtarget - dif.normalized * 0.02f;
         }
         prevLower = servos[1].currentAngle;
         prevUpper = servos[2].currentAngle;

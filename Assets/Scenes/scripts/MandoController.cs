@@ -33,13 +33,20 @@ public class MandoController : MonoBehaviour
     List<GameObject> spheresPool = new();
     int initialLabelsCount = 5;
     [SerializeField] GameObject labelPrefab,spherePrefab;
-
+    [SerializeField] List<Image> xyzButtons;
     List<string> seq = new();
     List<string> tempseq = new();
 
     public void SetKinematic(bool state)
     {
         inverseKinematic = state;
+        Color color = !inverseKinematic ? Color.white : new Color(1.000f, 0.875f, 0.733f, 1.000f);
+        //cambiar color botones
+        foreach (var img in xyzButtons)
+        {
+            img.color = color;
+        }
+        
     }
     void Awake()
     {
@@ -55,6 +62,7 @@ public class MandoController : MonoBehaviour
         }
         ResetToNormal();
         positions = new();
+        speed = 50;
     }
 
     public void ShowTextContext(string mess, float duration)
@@ -146,6 +154,11 @@ public class MandoController : MonoBehaviour
 
     void ChangeSpeed()
     {
+        if(tmpInput.text.Length == 0)
+        {
+            ShowTextInfo("ok",1f);
+            return;
+        }
         if (int.TryParse(tmpInput.text, out int result))
         {
             if(result < 1 && result > 100){
@@ -215,11 +228,10 @@ public class MandoController : MonoBehaviour
 
     public void Abort()
     {
-        StopCoroutine(executionCoroutine);
+        if(executionCoroutine!=null)StopCoroutine(executionCoroutine);
         ResetToNormal();
         ChangeInfo("");
         ShowTextInfo("Abortado",1.5f);
-        
     }
 
     void AddToSequence()

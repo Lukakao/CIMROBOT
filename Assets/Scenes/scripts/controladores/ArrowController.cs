@@ -3,15 +3,13 @@ using UnityEngine;
 public class ArrowController : MonoBehaviour
 {
     Transform target;
-    Transform mainCam;
     void Start()
     {
-        mainCam = Camera.main.transform;
         target = GameObject.FindGameObjectWithTag("brazo_base").transform;
     }
 
     void LateUpdate()
     {
-        transform.rotation = target.rotation;
+        transform.rotation = target.rotation * Quaternion.Euler(0, 0, 90);
     }
 }
