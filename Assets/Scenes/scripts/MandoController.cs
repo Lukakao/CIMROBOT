@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection.Emit;
 using TMPro;
 using UnityEngine;
@@ -11,6 +12,7 @@ public enum Modo
     NORMAL,
     RECORD,
     LOADINGMOVE,
+    DELETING,
     EXECUTING,
     CHANGINGSPEED,
     MAKINGSEQUENCE
@@ -65,6 +67,11 @@ public class MandoController : MonoBehaviour
         speed = 50;
     }
 
+    void Start()
+    {
+        LoadPositionsFromFile();
+    }
+
     public void ShowTextContext(string mess, float duration)
     {
         if(c_context!=null) StopCoroutine(c_context); 
@@ -88,6 +95,7 @@ public class MandoController : MonoBehaviour
         ServoData data = new(wristJoint.position, servos[0].currentAngle,servos[1].currentAngle,servos[2].currentAngle,
         servos[3].currentAngle,servos[4].currentAngle,servos[5].currentAngle);
         positions[GetInput()] = data;
+        SavePositionsToFile();
         ShowTextInfo("Grabado exitoso",1.5f);
         UpdateGizmos();
     }
@@ -220,6 +228,7 @@ public class MandoController : MonoBehaviour
         {
             case Modo.RECORD: SavePosition(); break;
             case Modo.LOADINGMOVE: GoPosition(); break;
+            case Modo.DELETING: EliminarPosicion(); return;
             case Modo.CHANGINGSPEED: ChangeSpeed(); break;
             case Modo.MAKINGSEQUENCE: AddToSequence(); return;
         }
@@ -284,6 +293,39 @@ public class MandoController : MonoBehaviour
         modo = Modo.LOADINGMOVE;
         tmpInput.text = "";
         ChangeContext("MOVER:");
+    }
+
+    public void EnterDeletePositionLoop()
+    {
+        robotCanMove = false;
+        takingInput = true;
+        modo = Modo.DELETING;
+        tmpInput.text = "";
+        ChangeContext("ELIMINAR:");
+    }
+
+    public void EliminarPosicion()
+    {
+        string key = GetInput();
+        if (!positions.Remove(key))
+        {
+            ShowTextInfo("POSICION INVALIDA", 1.5f);
+            return;
+        }
+
+        SavePositionsToFile();
+        UpdateGizmos();
+        ResetToNormal();
+        ShowTextInfo("Eliminado", 1.5f);
+    }
+
+    public void EliminarTodasLasPosiciones()
+    {
+        positions.Clear();
+        SavePositionsToFile();
+        UpdateGizmos();
+        ResetToNormal();
+        ShowTextInfo("Pos. eliminadas", 1.5f);
     }
 
     public void EnterCreateSeqPositionLoop()
@@ -361,9 +403,88 @@ public class MandoController : MonoBehaviour
     }
 
 
+    string GetPositionsFilePath()
+    {
+        return Path.Combine(
+            Directory.GetParent(Application.dataPath).FullName,
+            "posiciones.json"
+        );
+    }
+
+    void SavePositionsToFile()
+    {
+        try
+        {
+            SavedPositionsWrapper wrapper = new SavedPositionsWrapper();
+            foreach (var pair in positions)
+            {
+                wrapper.items.Add(new SavedPositionItem { key = pair.Key, data = pair.Value });
+            }
+            string json = JsonUtility.ToJson(wrapper, true);
+            string path = GetPositionsFilePath();
+            File.WriteAllText(path, json);
+            Debug.Log($"Posiciones guardadas en: {path}");
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"Error al guardar posiciones: {ex.Message}");
+            try
+            {
+                SavedPositionsWrapper wrapper = new SavedPositionsWrapper();
+                foreach (var pair in positions)
+                {
+                    wrapper.items.Add(new SavedPositionItem { key = pair.Key, data = pair.Value });
+                }
+                string json = JsonUtility.ToJson(wrapper, true);
+                string persistentPath = Path.Combine(Application.persistentDataPath, "posiciones.json");
+                File.WriteAllText(persistentPath, json);
+                Debug.Log($"Posiciones guardadas en persistentDataPath: {persistentPath}");
+            }
+            catch (Exception ex2)
+            {
+                Debug.LogError($"Fallo al guardar en persistentDataPath: {ex2.Message}");
+            }
+        }
+    }
+
+    void LoadPositionsFromFile()
+    {
+        try
+        {
+            string path = GetPositionsFilePath();
+            if (!File.Exists(path))
+            {
+                string persistentPath = Path.Combine(Application.persistentDataPath, "posiciones.json");
+                if (File.Exists(persistentPath))
+                {
+                    path = persistentPath;
+                }
+            }
+
+            if (File.Exists(path))
+            {
+                string json = File.ReadAllText(path);
+                SavedPositionsWrapper wrapper = JsonUtility.FromJson<SavedPositionsWrapper>(json);
+                if (wrapper != null && wrapper.items != null)
+                {
+                    positions.Clear();
+                    foreach (var item in wrapper.items)
+                    {
+                        positions[item.key] = item.data;
+                    }
+                    UpdateGizmos();
+                    Debug.Log($"Posiciones cargadas ({positions.Count}) desde: {path}");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"Error al cargar posiciones: {ex.Message}");
+        }
+    }
 }
 
-
+[System.Serializable]
 public struct ServoData
 {
     public Vector3 targetPos;
@@ -386,4 +507,15 @@ public struct ServoData
     }
 }
 
-//todo: f i know
+[System.Serializable]
+public class SavedPositionsWrapper
+{
+    public List<SavedPositionItem> items = new List<SavedPositionItem>();
+}
+
+[System.Serializable]
+public struct SavedPositionItem
+{
+    public string key;
+    public ServoData data;
+}

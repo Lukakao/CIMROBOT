@@ -16,6 +16,7 @@ public class UIController : MonoBehaviour
     SerialConnectionController serial;
     private Button btn_conectar;
     private int selectedPortIndex;
+    private ColorBlock defaultButtonColors;
 
     void Start()
     {
@@ -30,6 +31,7 @@ public class UIController : MonoBehaviour
         }
         
         btn_conectar = GameObject.FindGameObjectWithTag("btn_conectar").GetComponent<Button>();
+        defaultButtonColors = btn_conectar.colors; // guardar el color original antes de tocarlo
         btn_conectar.onClick.AddListener(TryConnectPort);
 
         config_canvas.SetActive(isConfigVisible);
@@ -54,6 +56,11 @@ public class UIController : MonoBehaviour
         cb.selectedColor = new Color(1f,0.5f,0.5f);
         btn_conectar.colors = cb;
 
+    }
+
+    public void ButtonConnectReset()
+    {
+        btn_conectar.colors = defaultButtonColors;
     }
 
     private void DropdownValueChanged(int value)

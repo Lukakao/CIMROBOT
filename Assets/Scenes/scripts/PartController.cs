@@ -8,6 +8,8 @@ public class PartController : MonoBehaviour
     public Vector3 ejeRotacion;
     public float minAng = -45f;
     public float maxAng = 45f;
+    public float minAngOut = 0f;
+    public float maxAngOut = 180f;
     public float minValue = 0f;
     public float maxValue = 0f;
     public float radius = 2f;
@@ -16,7 +18,7 @@ public class PartController : MonoBehaviour
 
     Quaternion initialRotation;
     public float currentAngle;
-    float range;
+    public float range => maxAng - minAng;
     int direction;
     public int servoNum;
 
@@ -33,10 +35,8 @@ public class PartController : MonoBehaviour
 
     void Awake()
     {
-        range = maxAng - minAng;
         initialRotation = transform.localRotation;
         currentAngle = startingAngle;
-        //SetAngle(startingAngle);
     }
 
     public void ChangeDir(int dir)
